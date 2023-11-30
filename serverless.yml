@@ -18,6 +18,7 @@ package:
     - '**/*'
   include:
     - '*.py'
+    - 'psycopg2'
 
 functions:
   create_user:

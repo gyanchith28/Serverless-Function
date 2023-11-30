@@ -6,6 +6,16 @@ except ImportError:
 import json
 import uuid
 import re
+import psycopg2
+from psycopg2 import sql
+
+db_params = {
+    'dbname': 'backendtask',
+    'user': 'tasks',
+    'password': 'password',
+    'host': 'tasks.cimwffl3uo0u.ap-south-1.rds.amazonaws.com',
+    'port': '5432'
+}
 
 def is_valid_pan(pan_num):
     pan_pattern = re.compile(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$')
@@ -42,12 +52,28 @@ def create_user(event, context):
                 'statusCode': 400,
                 'body': json.dumps({'error': 'Invalid mobile number format'})
             }
+
         # Generate a UUID for user_id
         user_id = str(uuid.uuid4())
+        
+        conn = psycopg2.connect(**db_params)
+        cursor = conn.cursor()
 
-        # Store user data in a database (you can add this part later)
+        # Store user data in a database 
+        query = sql.SQL("INSERT INTO users (user_id, full_name, mob_num, pan_num) VALUES ({}, {}, {}, {})").format(
+            sql.Literal(user_id),
+            sql.Literal(full_name),
+            sql.Literal(mob_num),
+            sql.Literal(pan_num)
+        )
+        cursor.execute(query)
+        conn.commit()
 
-        # Return success response
+        # Close the database connection
+        cursor.close()
+        conn.close()
+
+        # Return response
         return {
             'statusCode': 200,
             'body': json.dumps({'user_id': user_id, 'full_name': full_name, 'mob_num': mob_num, 'pan_num': pan_num})
