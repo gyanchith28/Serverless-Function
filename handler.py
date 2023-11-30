@@ -85,3 +85,35 @@ def create_user(event, context):
             'statusCode': 500,
             'body': json.dumps({'error': str(e)})
         }
+
+def get_users(event, context):
+    try:
+        conn = psycopg2.connect(**db_params)
+        cursor = conn.cursor()
+
+        # Fetch users
+        cursor.execute("SELECT * FROM users;")
+        users_record = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        users = []
+        for record in users_record:
+            user = {
+                'user_id': record[0],
+                'full_name': record[1],
+                'mob_num': record[2],
+                'pan_num': record[3]
+            }
+            users.append(user)
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'users': users})
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': e})
+        }

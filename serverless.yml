@@ -27,3 +27,10 @@ functions:
       - http:
           path: create_user
           method: post
+
+  get_user:
+    handler: handler.get_users
+    events:
+      - http:
+          path: get_users
+          method: get
