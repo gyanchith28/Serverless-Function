@@ -5,6 +5,15 @@ except ImportError:
 
 import json
 import uuid
+import re
+
+def is_valid_pan(pan_num):
+    pan_pattern = re.compile(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$')
+    return bool(pan_pattern.match(pan_num))
+
+def is_valid_mobile(mob_num):
+    mob_pattern = re.compile(r'^\d{10}$')
+    return bool(mob_pattern.match(mob_num))
 
 def create_user(event, context):
     try:
@@ -14,15 +23,25 @@ def create_user(event, context):
         mob_num = body.get('mob_num')
         pan_num = body.get('pan_num')
 
-        # Validate inputs
         if not full_name or not mob_num or not pan_num:
             return {
                 'statusCode': 400,
                 'body': json.dumps({'error': 'Missing required fields'})
             }
 
-        # Perform additional validations (e.g., mobile number and PAN format)
+        # Validate PAN card format
+        if not is_valid_pan(pan_num):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid PAN card format'})
+            }
 
+        # Validate mobile number format
+        if not is_valid_mobile(mob_num):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid mobile number format'})
+            }
         # Generate a UUID for user_id
         user_id = str(uuid.uuid4())
 
