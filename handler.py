@@ -82,6 +82,7 @@ def create_user(event, context):
             'body': json.dumps({'error': str(e)})
         }
 
+# /get_users
 def get_users(event, context):
     try:
         conn = psycopg2.connect(**db_params)
@@ -114,6 +115,7 @@ def get_users(event, context):
             'body': json.dumps({'error': e})
         }
 
+# /delete_user
 def delete_user(event, context):
     try:
         body = json.loads(event['body'])
@@ -122,24 +124,19 @@ def delete_user(event, context):
         conn = psycopg2.connect(**db_params)
         cursor = conn.cursor()
 
-        # Check if the user exists
-        query = sql.SQL("DELETE FROM users WHERE user_id = {}").format(
+        # delete
+        query = sql.SQL("DELETE FROM users WHERE user_id = {} RETURNING *").format(
             sql.Literal(user_id)
         )
         cursor.execute(query)
-        existing_user = cursor.fetchone()
 
-        if not existing_user:
+        # Check if any row was deleted (user exists)
+        if cursor.rowcount == 0:
             return {
                 'statusCode': 404,
                 'body': json.dumps({'error': 'User not found'})
             }
 
-        # Deletion
-        query = sql.SQL("DELETE FROM users WHERE user_id = {}").format(
-            sql.Literal(user_id)
-        )
-        cursor.execute(query)
         conn.commit()
 
         cursor.close()
@@ -156,6 +153,7 @@ def delete_user(event, context):
             'body': json.dumps({'error': str(e)})
         }
 
+# /update_user
 def update_user(event, context):
     try:
         body = json.loads(event['body'])
