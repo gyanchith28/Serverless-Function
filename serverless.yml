@@ -22,7 +22,7 @@ package:
 
 functions:
   create_user:
-    handler: create_user.create_user
+    handler: handler.create_user
     events:
       - http:
           path: create_user

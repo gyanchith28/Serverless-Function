@@ -17,6 +17,8 @@ db_params = {
     'port': '5432'
 }
 
+# /create_user
+
 def is_valid_pan(pan_num):
     pan_pattern = re.compile(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$')
     return bool(pan_pattern.match(pan_num))
@@ -76,7 +78,7 @@ def create_user(event, context):
         # Return response
         return {
             'statusCode': 200,
-            'body': json.dumps({'user_id': user_id, 'full_name': full_name, 'mob_num': mob_num, 'pan_num': pan_num})
+            'body': json.dumps('User created successfully')
         }
     except Exception as e:
         return {
