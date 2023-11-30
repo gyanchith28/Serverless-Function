@@ -51,7 +51,7 @@ def create_user(event, context):
                 'body': json.dumps({'error': 'Invalid mobile number format'})
             }
 
-        # Generate a UUID for user_id
+        # Generate user_id
         user_id = str(uuid.uuid4())
         
         conn = psycopg2.connect(**db_params)
@@ -123,7 +123,10 @@ def delete_user(event, context):
         cursor = conn.cursor()
 
         # Check if the user exists
-        cursor.execute("SELECT * FROM users WHERE user_id = %s;", (user_id,))
+        query = sql.SQL("DELETE FROM users WHERE user_id = {}").format(
+            sql.Literal(user_id)
+        )
+        cursor.execute(query)
         existing_user = cursor.fetchone()
 
         if not existing_user:
@@ -145,6 +148,67 @@ def delete_user(event, context):
         return {
             'statusCode': 200,
             'body': json.dumps('User deleted successfully')
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
+
+def update_user(event, context):
+    try:
+        body = json.loads(event['body'])
+        user_id = body.get('user_id')
+        update_data = body.get('update_data', {})
+
+        conn = psycopg2.connect(**db_params)
+        cursor = conn.cursor()
+
+        #valid userid check
+        cursor.execute("SELECT * FROM users WHERE user_id = %s;", (user_id,))
+
+        existing_user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if not existing_user:
+            return {
+                'statusCode': 404,
+                'body': json.dumps({'error': 'User not found'})
+            }
+
+        # Validate and update user data
+        full_name = update_data.get('full_name', existing_user[1])
+        mob_num = update_data.get('mob_num', existing_user[2])
+        pan_num = update_data.get('pan_num', existing_user[3])
+
+        # Validate updated data
+        if not is_valid_pan(pan_num):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid PAN card format'})
+            }
+
+        if not is_valid_mobile(mob_num):
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid mobile number format'})
+            }
+
+        # Update DB
+        conn = psycopg2.connect(**db_params)
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE users SET full_name = %s, mob_num = %s, pan_num = %s WHERE user_id = %s;", (full_name, mob_num, pan_num, user_id))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps('User updated successfully')
         }
 
     except Exception as e:

@@ -41,3 +41,10 @@ functions:
       - http:
           path: delete_user
           method: delete
+  
+  update_user:
+    handler: handler.update_user
+    events:
+      - http:
+          path: /update_user
+          method: put
