@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Welcome to Serverless!
 #
 # This file is the main config file for your service.
@@ -112,3 +113,33 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+=======
+service: sls-pandas-py
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: ap-south-1
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    zip: true
+
+package:
+  exclude:
+    - '**/*'
+  include:
+    - '*.py'
+
+functions:
+  create_user:
+    handler: create_user.create_user
+    events:
+      - http:
+          path: create_user
+          method: post
+>>>>>>> 735292b (Take user creadential for usr creation)
