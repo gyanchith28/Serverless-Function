@@ -3,19 +3,15 @@ try:
 except ImportError:
     pass
 
+import os
 import json
 import uuid
 import re
 import psycopg2
 from psycopg2 import sql
+import credentials
 
-db_params = {
-    'dbname': 'backendtask',
-    'user': 'tasks',
-    'password': 'password',
-    'host': 'tasks.cimwffl3uo0u.ap-south-1.rds.amazonaws.com',
-    'port': '5432'
-}
+db_params = credentials.db_params
 
 # /create_user
 
@@ -116,4 +112,43 @@ def get_users(event, context):
         return {
             'statusCode': 500,
             'body': json.dumps({'error': e})
+        }
+
+def delete_user(event, context):
+    try:
+        body = json.loads(event['body'])
+        user_id = body.get('user_id')
+
+        conn = psycopg2.connect(**db_params)
+        cursor = conn.cursor()
+
+        # Check if the user exists
+        cursor.execute("SELECT * FROM users WHERE user_id = %s;", (user_id,))
+        existing_user = cursor.fetchone()
+
+        if not existing_user:
+            return {
+                'statusCode': 404,
+                'body': json.dumps({'error': 'User not found'})
+            }
+
+        # Deletion
+        query = sql.SQL("DELETE FROM users WHERE user_id = {}").format(
+            sql.Literal(user_id)
+        )
+        cursor.execute(query)
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps('User deleted successfully')
+        }
+
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
         }

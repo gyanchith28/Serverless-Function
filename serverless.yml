@@ -34,3 +34,10 @@ functions:
       - http:
           path: get_users
           method: get
+
+  delete_user:
+    handler: handler.delete_user
+    events:
+      - http:
+          path: delete_user
+          method: delete
